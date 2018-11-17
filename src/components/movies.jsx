@@ -14,8 +14,13 @@ class Movies extends Component {
 	}
 	
 	render() { 
+
+		const { length: count } = this.state.movies;
+		if(count === 0) return <p>영화가 없습니다.</p>
 		return ( 
-			<table className="table">
+			<React.Fragment>
+			<p>현재 {count} 개의 대여 가능한 영화가 있습니다.</p>
+				<table className="table">
 				<thead>
 					<tr>
 						<th>Title</th>
@@ -27,7 +32,7 @@ class Movies extends Component {
 				</thead>
 				<tbody>
 				{this.state.movies.map(movie =>(
-					<tr>
+					<tr key={movie._id}>
 						<td>{movie.title}</td>
 						<td>{movie.genre.name}</td>
 						<td>{movie.numberInStock}</td>
@@ -40,6 +45,7 @@ class Movies extends Component {
 				))}
 				</tbody>
 			</table>
+			</React.Fragment>
 		);
 	}
 }
