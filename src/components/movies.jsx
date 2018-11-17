@@ -1,16 +1,30 @@
 import React, { Component } from 'react'
-import { getMovies } from '../services/fakeMovieService'
+import { getMovies } from '../services/fakeMovieService';
+import { getGenres } from '../services/fakeGenreService';
 import Like from './common/Like';
-import Pagination from './common/Pagination'
+import ListGroup from './common/listGroup';
+import Pagination from './common/Pagination';
 import { paginate } from '../utils/paginate';
+
 
 class Movies extends Component {
 	
   state = {  
-	movies: getMovies(),
+	movies: [],
+	genres: [],
 	pageSize: 4,
 	curPage: 1
   };
+
+componentDidMount() {
+	const genres = [{ name: 'All Genres'},...getGenres()]
+	this.setState({ 
+		movies: getMovies(), 
+		genres 
+	});
+}
+
+
 
 handleDelete = movies => {
   const m = this.state.movies.filter(movie => {
@@ -28,23 +42,51 @@ handleLike = (movie) => {
 };
 
 handlePageChange = (pageNum) => {
-
+	
 	console.log(pageNum);
 	this.setState({ curPage : pageNum })
 
 };
 
+handleGenreSelect = (genre) => {
+	this.setState({ selectedGenre: genre, curPage : 1 });
+}
+
 	
 render() { 
-	const { pageSize, curPage, movies: allMovies } = this.state;
 
-	const { length: count } = this.state.movies;
-	if(count === 0) return <p>영화가 없습니다.</p>
-	const movies = paginate(allMovies, curPage, pageSize);
+	const { 
+		length: count 
+	} = this.state.movies;
+
+	const { 
+		pageSize, 
+		curPage, 
+        movies: allMovies,
+		selectedGenre
+	} = this.state;
+
+if(count === 0) return <p>영화가 없습니다.</p>
+
+	const filtered = 
+	selectedGenre && selectedGenre._id
+	? allMovies.filter(m =>  m.genre._id === selectedGenre._id) 
+	: allMovies;
+
+	const movies = 
+	paginate(filtered, curPage, pageSize);
 	
 	return ( 
-<React.Fragment>
-	<p>현재 {count} 개의 대여 가능한 영화가 있습니다.</p>
+
+<div className="row">
+	<div className="col-3">
+		<ListGroup 
+		selectedItem={this.state.selectedGenre}
+		items={this.state.genres} 
+		onItemSelect={this.handleGenreSelect}/>
+	</div>
+	<div className="col">
+	<p>현재 {filtered.length} 개의 대여 가능한 영화가 있습니다.</p>
 		<table className="table">
 			<thead>
 				<tr>
@@ -78,12 +120,13 @@ render() {
 
 	</tbody>
 	</table>
-	<Pagination itemsCount={count} 
+	<Pagination itemsCount={filtered.length} 
 				pageSize={pageSize}
 				curPage = {curPage}
 				onPageChange={this.handlePageChange}
-				/>
-</React.Fragment>
+			  />
+		</div>
+    </div>
 		);
 	}
 }
