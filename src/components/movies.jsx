@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { getMovies } from '../services/fakeMovieService'
 import Like from './common/Like';
 import Pagination from './common/Pagination'
+import { paginate } from '../utils/paginate';
 
 class Movies extends Component {
 	
@@ -35,10 +36,13 @@ handlePageChange = (pageNum) => {
 
 	
 render() { 
-const { pageSize, curPage } = this.state;
-const { length: count } = this.state.movies;
-if(count === 0) return <p>영화가 없습니다.</p>
-return ( 
+	const { pageSize, curPage, movies: allMovies } = this.state;
+
+	const { length: count } = this.state.movies;
+	if(count === 0) return <p>영화가 없습니다.</p>
+	const movies = paginate(allMovies, curPage, pageSize);
+	
+	return ( 
 <React.Fragment>
 	<p>현재 {count} 개의 대여 가능한 영화가 있습니다.</p>
 		<table className="table">
@@ -53,7 +57,7 @@ return (
 			</tr>
 		</thead>
 	<tbody>
-{this.state.movies.map(movie =>(
+{movies.map(movie =>(
 	<tr key={movie._id}>
 		<td>{movie.title}</td>
 		<td>{movie.genre.name}</td>
