@@ -1,11 +1,14 @@
 import React, { Component } from 'react'
 import { getMovies } from '../services/fakeMovieService'
 import Like from './common/Like';
+import Pagination from './common/Pagination'
 
 class Movies extends Component {
 	
   state = {  
-	movies: getMovies()
+	movies: getMovies(),
+	pageSize: 4,
+	curPage: 1
   };
 
 handleDelete = movies => {
@@ -22,9 +25,17 @@ handleLike = (movie) => {
 	movieObj[index].liked = !movieObj[index].liked; 
 	this.setState({ movies: movieObj })
 };
+
+handlePageChange = (pageNum) => {
+
+	console.log(pageNum);
+	this.setState({ curPage : pageNum })
+
+};
+
 	
 render() { 
-
+const { pageSize, curPage } = this.state;
 const { length: count } = this.state.movies;
 if(count === 0) return <p>영화가 없습니다.</p>
 return ( 
@@ -60,8 +71,14 @@ return (
 		</td>
 	</tr>
 ))}
+
 	</tbody>
 	</table>
+	<Pagination itemsCount={count} 
+				pageSize={pageSize}
+				curPage = {curPage}
+				onPageChange={this.handlePageChange}
+				/>
 </React.Fragment>
 		);
 	}
