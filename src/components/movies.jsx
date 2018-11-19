@@ -1,30 +1,30 @@
 import React, { Component } from 'react'
 import { getMovies } from '../services/fakeMovieService';
 import { getGenres } from '../services/fakeGenreService';
-import Like from './common/Like';
+import MoviesTable from './common/moviesTable';
 import ListGroup from './common/listGroup';
 import Pagination from './common/Pagination';
 import { paginate } from '../utils/paginate';
+import _ from 'lodash';
 
 
 class Movies extends Component {
 	
   state = {  
-	movies: [],
-	genres: [],
-	pageSize: 4,
-	curPage: 1
+	  movies: [],
+	  genres: [],
+	  pageSize: 4,
+	  curPage: 1,
+	  sortColumn: { path: 'title', order: 'asc'}
   };
 
 componentDidMount() {
-	const genres = [{ name: 'All Genres'},...getGenres()]
+	const genres = [{ _id: '', name: 'All Genres'},...getGenres()]
 	this.setState({ 
 		movies: getMovies(), 
 		genres 
 	});
 }
-
-
 
 handleDelete = movies => {
   const m = this.state.movies.filter(movie => {
@@ -52,6 +52,9 @@ handleGenreSelect = (genre) => {
 	this.setState({ selectedGenre: genre, curPage : 1 });
 }
 
+handleSort = sortColumn => {
+	this.setState({ sortColumn });
+}
 	
 render() { 
 
@@ -63,7 +66,8 @@ render() {
 		pageSize, 
 		curPage, 
         movies: allMovies,
-		selectedGenre
+		selectedGenre,
+		sortColumn
 	} = this.state;
 
 if(count === 0) return <p>영화가 없습니다.</p>
@@ -73,8 +77,10 @@ if(count === 0) return <p>영화가 없습니다.</p>
 	? allMovies.filter(m =>  m.genre._id === selectedGenre._id) 
 	: allMovies;
 
+	const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
+
 	const movies = 
-	paginate(filtered, curPage, pageSize);
+	paginate(sorted, curPage, pageSize);
 	
 	return ( 
 
@@ -86,45 +92,20 @@ if(count === 0) return <p>영화가 없습니다.</p>
 		onItemSelect={this.handleGenreSelect}/>
 	</div>
 	<div className="col">
-	<p>현재 {filtered.length} 개의 대여 가능한 영화가 있습니다.</p>
-		<table className="table">
-			<thead>
-				<tr>
-				<th>Title</th>
-				<th>Genre</th>
-				<th>Stock</th>
-				<th>Rate</th>
-				<th></th>
-				<th></th>
-			</tr>
-		</thead>
-	<tbody>
-{movies.map(movie =>(
-	<tr key={movie._id}>
-		<td>{movie.title}</td>
-		<td>{movie.genre.name}</td>
-		<td>{movie.numberInStock}</td>
-		<td>{movie.dailyRentalRate}</td>
-		<td>
-			<Like liked={movie.liked}
-				  onClick={() => this.handleLike(movie)}/>
-		</td>
-		<td>
-			<button onClick={()=> this.handleDelete(movie)}
-					className="btn btn-danger btn-sm">
-					삭제
-			</button>
-		</td>
-	</tr>
-))}
-
-	</tbody>
-	</table>
-	<Pagination itemsCount={filtered.length} 
-				pageSize={pageSize}
-				curPage = {curPage}
-				onPageChange={this.handlePageChange}
-			  />
+	  <p>현재 {filtered.length} 개의 대여 가능한 영화가 있습니다.</p>
+	<MoviesTable 
+	  sortColumn={sortColumn}
+		movies={movies} 
+		onLike={this.handleLike} 
+		onDelete={this.handleDelete}
+		onSort={this.handleSort}
+	  />
+	<Pagination 
+		itemsCount={filtered.length} 
+		pageSize={pageSize}
+		curPage = {curPage}
+		onPageChange={this.handlePageChange}
+	  />
 		</div>
     </div>
 		);
